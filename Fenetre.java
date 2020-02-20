@@ -11,6 +11,7 @@ import java.awt.Dimension;
 import java.text.NumberFormat;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import java.awt.Toolkit;
  
 /** Classe implémentant la fenêtre de tchat.
   * Elle contient les champs suivants : 
@@ -25,11 +26,14 @@ import javax.swing.ScrollPaneConstants;
   */
 public class Fenetre extends JFrame {
 
+	private int largeur = (int)(java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth());
+	private int hauteur = (int)(java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight());
+
 	/** Constructeur d'une fenêtre */
 	public Fenetre() {
 		
 		this.setTitle("Tchat");  // Définit un titre pour notre fenêtre    
-		this.setSize(400, 600); // Définit sa taille : 400 pixels de large et 600 pixels de haut    
+		this.setSize(largeur / 2, hauteur); // Définit sa taille : 400 pixels de large et 600 pixels de haut    
 		this.setLocationRelativeTo(null); // Nous demandons maintenant à notre objet de se positionner au centre
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Termine le processus lorsqu'on clique sur la croix rouge  
 		this.setResizable(true); // Empêche la fenêtre de pouvoir être redimensionnée 
@@ -93,9 +97,11 @@ public class Fenetre extends JFrame {
 		JTextArea ta1 = new JTextArea(); // Champ de saisie des connectés
 		JScrollPane sp1 = new JScrollPane(ta1, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
 		
+		ta1.setEditable(false); // Le champ connectés ne peut pas être modifié
+		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
 		// !!! C'est bien le JScrollPane qui définit la taille du champ et non le JTextArea !!!
-		sp1.setPreferredSize(new Dimension(this.getWidth() / 2, this.getHeight()));
+		sp1.setPreferredSize(new Dimension(largeur / 10, hauteur / 4 * 3));
 		
 		p4.setLayout(new BoxLayout(p4, BoxLayout.PAGE_AXIS));
 	
@@ -124,9 +130,11 @@ public class Fenetre extends JFrame {
 		JScrollPane sp2 = new JScrollPane(ta2, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
 		JScrollPane sp3 = new JScrollPane(ta3, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
 		
+		ta2.setEditable(false); // Le champ discussion ne peut pas être modifié
+		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
-		sp2.setPreferredSize(new Dimension(this.getWidth() * 2, this.getHeight() / 2));
-		sp3.setPreferredSize(new Dimension(this.getWidth() * 2, this.getHeight() / 3));
+		sp2.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 2));
+		sp3.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 6));
 		
 		p5.setLayout(new BoxLayout(p5, BoxLayout.PAGE_AXIS));
 		
