@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.FileReader;
 
 /** Classe implémentant le bouton de connexion au tchat */
-class BoutonConnexion extends JButton implements MouseListener {
+class BoutonDeconnexion extends JButton implements MouseListener {
 
 	private String nomBouton;
 	private JTextField champNom;
@@ -25,24 +25,31 @@ class BoutonConnexion extends JButton implements MouseListener {
 	private JTextArea champConnectes;
 	private JTextArea champDiscussion;
 	private List<Client> listeClients;
-	private JButton envoyer, deconnexion;
+	private Client client;
+	private JButton envoyer;
 	private Fenetre fenetre;
 	
 	/** Constructeur d'un bouton de connexion */
-	public BoutonConnexion(JTextField nom, JTextField ip, JTextField port, JTextArea connectes, JTextArea discussion, JButton b1, JButton b2, Fenetre f){
-		super("Connexion");
-		nomBouton = "Connexion";
+	public BoutonDeconnexion(JTextField nom, JTextField ip, JTextField port, JTextArea connectes, JTextArea discussion, JButton b, Fenetre f){
+		super("Déconnexion");
+		nomBouton = "Déconnexion";
 		champNom = nom;
 		champIP = ip;
 		champPort = port;
 		champConnectes = connectes;
 		champDiscussion = discussion;
 		listeClients = new LinkedList<Client>();
-		envoyer = b1;
-		deconnexion = b2;
+		envoyer = b;
 		fenetre = f;
 		/* Grâce à cette instruction, notre objet va s'écouter. Dès qu'un événement de la souris sera intercepté, il en sera averti */
 		this.addMouseListener(this);
+	}
+	
+	/** Setter sur client
+	  * @param c le client à affecter
+	  */
+	public void setClient(Client c) {
+		client = c;
 	}
 
 	// Méthode appelée lors du clic de souris
@@ -56,6 +63,7 @@ class BoutonConnexion extends JButton implements MouseListener {
 			listeClients = new LinkedList<Client>(); // La liste est clients est réinitialisée pour pouvoir être chargée à partir du fichier
 			while ((c = (Client)(fichierClientsInput.readObject())) != null) // Ajout de chaque client du fichier à la liste des clients
 				listeClients.add(c);
+			System.out.println(listeClients);
 		
 		} catch (EOFException e) { // Cette exception est levée lorsque la fin du fichier est atteinte
 			System.out.println("Liste des clients chargée.");
@@ -75,14 +83,13 @@ class BoutonConnexion extends JButton implements MouseListener {
 			}
 		}
 		
-		/* Ajout d'un client à une liste de clients */
+		/* Suppression d'un client à une liste de clients */
 		try {
-			Client c = new Client(champNom.getText(), champIP.getText(), Integer.parseInt(champPort.getText()));
-			if (c.estConnecte()) {// Si le client n'a pas eu de problèmes de connexion
-				listeClients.add(c);
-				((BoutonDeconnexion)deconnexion).setClient(c);
-				((BoutonEnvoyer)envoyer).setClient(c);
-				fenetre.changerDeconnexion(); // Le bouton de connexion devient un bouton de déconnexion 
+			if (client.estConnecte()) { // Si le client est bien connecté
+				for (Client c : listeClients) 
+					if (c.getNom().equals(champNom.getText()))
+						listeClients.remove(c);
+				client.deconnecter();	
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -130,6 +137,9 @@ class BoutonConnexion extends JButton implements MouseListener {
 			e.printStackTrace();
 		}
 		champDiscussion.setText(str);
+		
+		/* Le bouton de déconnexion devient un bouton de connexion */
+		fenetre.changerConnexion();
 		
 	}
 	// Méthode appelée lors du survol de la souris

@@ -12,6 +12,12 @@ import java.text.NumberFormat;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import java.awt.Toolkit;
+import java.io.FileNotFoundException;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.io.FileReader;
  
 /** Classe implémentant la fenêtre de tchat.
   * Elle contient les champs suivants : 
@@ -28,6 +34,9 @@ public class Fenetre extends JFrame {
 
 	private int largeur = (int)(java.awt.Toolkit.getDefaultToolkit().getScreenSize().getWidth());
 	private int hauteur = (int)(java.awt.Toolkit.getDefaultToolkit().getScreenSize().getHeight());
+	private JPanel p1;
+	private JButton connexion, deconnexion;
+	private JTextArea champConnectes, champDiscussion, champMessage;
 
 	/** Constructeur d'une fenêtre */
 	public Fenetre() {
@@ -45,7 +54,7 @@ public class Fenetre extends JFrame {
 		/* Définition du panneau contenant les 2 premiers champs : nom, connexion
 		 * Ce panneau contient une ligne horizontale contenant les 2 champs.
 		 */
-    	JPanel p1 = new JPanel();
+    	p1 = new JPanel();
     	FlowLayout fl1 = new FlowLayout(); // Conteneur des 2 champs
     	JTextField tf1 = new JTextField(); // Champ de saisie du nom
     	tf1.setPreferredSize(new Dimension(150, 30)); // Dimension du champ : 150x30
@@ -94,10 +103,10 @@ public class Fenetre extends JFrame {
 		JPanel p4 = new JPanel();
 		JPanel p41 = new JPanel();
 		JPanel p42 = new JPanel();
-		JTextArea ta1 = new JTextArea(); // Champ de saisie des connectés
-		JScrollPane sp1 = new JScrollPane(ta1, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
+		champConnectes = new JTextArea(); // Champ de saisie des connectés
+		JScrollPane sp1 = new JScrollPane(champConnectes, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
 		
-		ta1.setEditable(false); // Le champ connectés ne peut pas être modifié
+		champConnectes.setEditable(false); // Le champ connectés ne peut pas être modifié
 		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
 		// !!! C'est bien le JScrollPane qui définit la taille du champ et non le JTextArea !!!
@@ -109,14 +118,10 @@ public class Fenetre extends JFrame {
 		p42.add(sp1); // Ajout du champ de texte
     	p4.add(p41);
     	p4.add(p42);
-    	
-    	
-    	JButton connexion = new BoutonConnexion(tf1, ta1); // Création d'un bouton de connexion
-    	p1.add(connexion); // Ajout du bouton de connexion
 		
 		
 		
-		/* Définition du panneau contenant la discussion, le message et le bouton envoyer.
+		/* Définition du panneau contenant la discussion, le message et le bouton envoyer et le bouton actualiser.
     	 * C'est une colonne qui contient 5 sous-panneaux contenant les éléments.
     	 */
 		JPanel p5 = new JPanel();
@@ -125,18 +130,20 @@ public class Fenetre extends JFrame {
 		JPanel p53 = new JPanel();
 		JPanel p54 = new JPanel();
 		JPanel p55 = new JPanel();
-		JTextArea ta2 = new JTextArea(); // Champ de saisie de la discussion
-		JTextArea ta3 = new JTextArea(); // Champ de saisie des messages
-		JScrollPane sp2 = new JScrollPane(ta2, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
-		JScrollPane sp3 = new JScrollPane(ta3, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
+		FlowLayout fl3 = new FlowLayout();
+		champDiscussion = new JTextArea(); // Champ de saisie de la discussion
+		champMessage = new JTextArea(); // Champ de saisie des messages
+		JScrollPane sp2 = new JScrollPane(champDiscussion, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
+		JScrollPane sp3 = new JScrollPane(champMessage, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // Barre de défilement
 		
-		ta2.setEditable(false); // Le champ discussion ne peut pas être modifié
+		champDiscussion.setEditable(false); // Le champ discussion ne peut pas être modifié
 		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
 		sp2.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 2));
 		sp3.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 6));
 		
 		p5.setLayout(new BoxLayout(p5, BoxLayout.PAGE_AXIS));
+		p55.setLayout(fl3);
 		
 		p51.add(new JLabel("Discussion")); // Ajout du label "discussion"		
     	p52.add(sp2); // Ajout du champ de texte 	
@@ -148,9 +155,11 @@ public class Fenetre extends JFrame {
 		p5.add(p54);
 		p5.add(p55);
 		
-    	JButton envoyer = new BoutonEnvoyer(ta2, ta3); // Bouton pour envoyer le message
+    	JButton envoyer = new BoutonEnvoyer(champDiscussion, champMessage); // Bouton pour envoyer le message
 		p55.add(envoyer); // Ajout du bouton
-		
+    	deconnexion = new BoutonDeconnexion(tf1, tf2, tf3, champConnectes, champDiscussion, envoyer, this); // Création d'un bouton de déconnexion (qui va se substituer au bouton de connexion par la suite)
+    	connexion = new BoutonConnexion(tf1, tf2, tf3, champConnectes, champDiscussion, envoyer, deconnexion, this); // Création d'un bouton de connexion
+    	p1.add(connexion); // Ajout du bouton de connexion
 		
 		
 		
@@ -179,11 +188,84 @@ public class Fenetre extends JFrame {
    		this.getContentPane().add(p7); // On prévient notre JFrame que notre JPanel sera son content pane
    		
 		this.setVisible(true); 
-	} 
+		
+		/* Actualisation du tchat toutes les secondes */
+		Fenetre f = this;
+		Thread t = new Thread(new Runnable() {
+		
+			public void run() {
+				while (true) 
+					try {
+						Thread.sleep(1000);
+						f.actualiseToi();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+			}
+		});
+		
+		t.start();
+	}   
 	
-	/*class BoutonListener implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-      System.out.println("TEXT : jtf " + tf4.getText());
-    }
-  }   */   
+	/** Méthode changeant le bouton de connexion en bouton de déconnexion */
+	public void changerDeconnexion() {
+		p1.remove(connexion);
+		p1.add(deconnexion);
+		this.setVisible(true); 
+	}
+	
+	/** Méthode changeant le bouton de déconnexion en bouton de connexion */
+	public void changerConnexion() {
+		p1.remove(deconnexion);
+		p1.add(connexion);
+		this.setVisible(true); 
+	}
+	
+	public void actualiseToi() {
+	
+		/* Chargement (désérialisation) de la liste des clients */
+		ObjectInputStream fichierClientsInput = null; // ObjectInputStream : fichier comportant des objets	
+		try {
+			fichierClientsInput = new ObjectInputStream(new FileInputStream("ListeClients.txt")); // Ouverture du fichier de clients en mode lecture
+			Client c;
+			champConnectes.setText("");
+			while ((c = (Client)(fichierClientsInput.readObject())) != null) // Ajout de chaque client du fichier à la liste des clients
+				champConnectes.setText(champConnectes.getText() + c.getNom() + "\n");
+		
+		} catch (EOFException e) { // Cette exception est levée lorsque la fin du fichier est atteinte
+			
+		} catch (ClassNotFoundException e) { // Cette exception est levée si l'objet désérialisé n'a pas de classe connue
+			e.printStackTrace();
+		} catch (FileNotFoundException e) { // Cette exception est levée si l'objet ObjectInputStream ne trouve aucun fichier
+			e.printStackTrace();
+		} catch (IOException e) { // Celle-ci se produit lors d'une erreur d'écriture ou de lecture
+			e.printStackTrace();
+		} finally {
+			// On ferme nos flux de données dans un bloc finally pour s'assurer que ces instructions seront exécutées dans tous les cas même si une exception est levée !
+			try {
+				if (fichierClientsInput != null)
+				fichierClientsInput.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		/* Actualisation du champ discussion */
+		String str = "";
+		try {
+			//Création de l'objet
+			FileReader fr = new FileReader("HistoriqueMessages.txt");
+			int i = 0;
+			//Lecture des données
+			while((i = fr.read()) != -1)
+				str += (char)i;
+			//On ferme le flux
+			fr.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		champDiscussion.setText(str);
+	}
 }
