@@ -1,0 +1,13 @@
+toto vient de se connecter.
+titi vient de se connecter.
+15:34:41 toto : Hello!
+15:34:44 titi : Hi!
+15:34:51 toto : How are you?
+15:34:57 titi : Fine and you?
+15:35:04 toto : I'm fine too.
+15:35:13 titi : OK, that's cool!
+15:35:21 toto : Sorry I have to go.
+15:35:32 titi : OK no problem, goodbye!
+15:35:36 toto : Bye!
+toto a quitté le tchat.
+titi a quitté le tchat.

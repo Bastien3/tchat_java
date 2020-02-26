@@ -1,168 +1,94 @@
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+/* Réseau */
 import java.net.Socket;
 import java.net.SocketException;
+
+/* Entrées/sorties */
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
-
+/** Classe représentant le processus traitant la demande du client */
 public class ProcessusClient implements Runnable {
 
 	private Socket sock;
-	private PrintWriter writer = null;
 	private BufferedInputStream reader = null;
 
-	/** Constructeur du processus client */
+	/** Constructeur du processus client
+	  * @param pSock la socket client
+	  */
 	public ProcessusClient(Socket pSock){
 		sock = pSock;
 	}
 
-	// Le traitement lancé dans un thread séparé
-	public void run(){
+	/** Le traitement lancé dans un thread séparé */
+	public void run() {
 
-		System.err.println("Lancement du traitement de la connexion cliente");
-		boolean closeConnexion = false;
-
-		// Tant que la connexion est active, on traite les demandes
+		/* Tant que la connexion est active, on traite les demandes */
 		while (!sock.isClosed()) {
 
 			try {
 
-				//Ici, nous n'utilisons pas les mêmes objets que précédemment
-				//Je vous expliquerai pourquoi ensuite
-				writer = new PrintWriter(sock.getOutputStream());
-				reader = new BufferedInputStream(sock.getInputStream());
+				/* Création des objets qui vont lire et écrire dans le fichier de discussion */
+				reader = new BufferedInputStream(sock.getInputStream()); // Le message envoyé par le client
+				FileReader fr = null; // L'objet qui va lire dans le fichier
+				FileWriter fw = null; // L'objet qui écrire dans le fichier
 
 				try {
-					//Création de l'objet
-					FileReader fr = new FileReader("HistoriqueMessages.txt");
+					
+					fr = new FileReader("HistoriqueMessages.txt");
 					int i = 0;
-					String str = "";
-					//Lecture des données
+					String contenuDiscussion = "";
+					
+					/* On récupère ce qu'il y a déjà dans le fichier */
 					while((i = fr.read()) != -1)
-						str += (char)i;
-					//On ferme le flux
-					fr.close();
-					//Création de l'objet
-					String response = str + read();
-					FileWriter fw = new FileWriter("HistoriqueMessages.txt");
-					fw.write(response);
-					//On ferme le flux
-					fw.close();
+						contenuDiscussion += (char)i;
+						
+					/* On construit le nouveau contenu du fichier (ancien contenu + message) */
+					String reponse = contenuDiscussion + read();
+					
+					/* On écrit le tout dans le fichier */
+					fw = new FileWriter("HistoriqueMessages.txt");
+					fw.write(reponse);
+					
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					e.printStackTrace();
+				} finally { // On ferme nos flux de données dans un bloc finally pour s'assurer que ces instructions seront exécutées dans tous les cas même si une exception est levée !
+					try {
+						if (fr != null)
+							fr.close();
+						if (fw != null)
+							fw.close();
+							
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
-				/*InetSocketAddress remote = (InetSocketAddress)sock.getRemoteSocketAddress();
 
-				//On affiche quelques infos, pour le débuggage
-				String debug = "";
-				debug = "Thread : " + Thread.currentThread().getName() + ". ";
-				debug += "Demande de l'adresse : " + remote.getAddress().getHostAddress() +".";
-				debug += " Sur le port : " + remote.getPort() + ".\n";
-				debug += "\t -> Commande reçue : " + response + "\n";
-				System.err.println("\n" + debug);
+				reader = null;
+				sock.close();
 
-				//On traite la demande du client en fonction de la commande envoyée
-				String toSend = "";
-
-
-
-				switch(response.toUpperCase()){
-
-				case "FULL":
-
-				toSend = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM).format(new Date());
-
+			} catch (SocketException e) {
 				break;
-
-				case "DATE":
-
-				toSend = DateFormat.getDateInstance(DateFormat.FULL).format(new Date());
-
-				break;
-
-				case "HOUR":
-
-				toSend = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
-
-				break;
-
-				case "CLOSE":
-
-				toSend = "Communication terminée"; 
-
-				closeConnexion = true;
-
-				break;
-
-				default : 
-
-				toSend = "Commande inconnu !";                     
-
-				break;
-
-			}
-
-
-
-			//On envoie la réponse au client
-
-			writer.write(toSend);
-
-			//Il FAUT IMPERATIVEMENT UTILISER flush()
-
-			//Sinon les données ne seront pas transmises au client
-
-			//et il attendra indéfiniment
-
-			writer.flush();
-
-
-			*/
-			closeConnexion = true;
-			if(closeConnexion){
-
-			System.err.println("COMMANDE CLOSE DETECTEE ! ");
-
-			writer = null;
-
-			reader = null;
-
-			sock.close();
-
-			break;
-
-			}
-
-		}catch(SocketException e){
-
-		System.err.println("LA CONNEXION A ETE INTERROMPUE ! ");
-
-		break;
-
-		} catch (IOException e) {
-
-		e.printStackTrace();
-
-		}         
-
+			} catch (IOException e) {
+				e.printStackTrace();
+			}         
 		}
-
 	}
 
-	// La méthode que nous utilisons pour lire les réponses
-	private String read() throws IOException{      
+	/** Méthode utilisée pour lire les réponses 
+	  * @return la réponse lue
+	  */
+	private String read() throws IOException {      
 
-		String response = "";
+		String reponse = "";
 		int stream;
-		byte[] b = new byte[65536];
+		byte[] b = new byte[128];
 		stream = reader.read(b);
-		response = new String(b, 0, stream);
-		return response;
+		reponse = new String(b, 0, stream);
+		return reponse;
 	}
 }

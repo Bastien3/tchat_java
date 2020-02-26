@@ -1,10 +1,13 @@
-import java.io.IOException;
+/* Réseau */
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.io.Serializable;
+
+/* Entrées/sorties */
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 
 /** Classe représentant le client */
 public class Client implements Serializable {
@@ -17,6 +20,7 @@ public class Client implements Serializable {
 
 	/** Constructeur d'un client.
 	  * Crée un socket client en fonction de son adresse IP et de son port.
+	  * @param nom le nom du client (son pseudo)
 	  * @param ip l'adresse IP du serveur avec lequel souhaite communiquer le client
 	  * @param port le numéro de port sur lequel souhaite se connecter le client
 	  */
@@ -26,7 +30,7 @@ public class Client implements Serializable {
 			nomClient = nom;
 			adresseIP = InetAddress.getByName(ip);
 			numeroPort = port;
-			this.envoyerMessage(nomClient + " vient de se connecter.\n");
+			this.envoyerMessage(nomClient + " vient de se connecter.\n"); // Envoie un message de connexion sur le tchat
 		} catch (UnknownHostException e) {
 			estConnecte = false;
 			e.printStackTrace();
@@ -52,7 +56,7 @@ public class Client implements Serializable {
 	  */
 	public void deconnecter() {
 		estConnecte = false;
-		this.envoyerMessage(nomClient + " a quitté le tchat.\n");
+		this.envoyerMessage(nomClient + " a quitté le tchat.\n"); // Envoie un message de déconnexion sur le tchat
 	}
 	
 	/** Méthode qui permet au client d'envoyer un message au serveur.
@@ -61,28 +65,23 @@ public class Client implements Serializable {
 	public void envoyerMessage(String message) {
 	
 		try {
-			System.out.println(message);
+		
 			socket = new Socket(adresseIP, numeroPort);
-			System.out.println("Client : nom " + nomClient + " adresse IP " + adresseIP.getHostAddress() + " port " + numeroPort);
-
 			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-			//reader = new BufferedInputStream(connexion.getInputStream());
 
-			//On envoie la commande au serveur           
+			/* On envoie la commande au serveur */         
 			String commande = message;
 			writer.write(commande);
-			//TOUJOURS UTILISER flush() POUR ENVOYER RÉELLEMENT DES INFOS AU SERVEUR
-			writer.flush();             
-			System.out.println("Commande " + commande + " envoyée au serveur");
-
-			//On attend la réponse
-			/*String response = read();
-			System.out.println("\t * " + name + " : Réponse reçue " + response);*/
-                       
-         } catch (IOException e) {
+			writer.flush(); //TOUJOURS UTILISER flush() POUR ENVOYER RÉELLEMENT DES INFOS AU SERVEUR             
+			             
+         } catch (IOException e) { // Connexion non réussie
+         
+         	System.out.println("La connexion avec le serveur n'a pas pu être établie pour le client " + nomClient);
+			System.out.println("Veuillez vérifier l'adresse IP du serveur et le port de connexion.");
+			System.out.println("S'ils sont corrects, vérifiez que le serveur est opérationnel.");
 			estConnecte = false;
-			e.printStackTrace();
-		} finally {
+			
+		} finally { // Dans tous les cas on ferme le socket
 			if (socket != null)
 				try {
 					socket.close();

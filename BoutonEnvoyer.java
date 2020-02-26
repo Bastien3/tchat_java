@@ -1,24 +1,31 @@
-import javax.swing.JButton;
-import javax.swing.JTextArea;
+/* Interface graphique */
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.text.DateFormat;
-import java.util.Date;
+import javax.swing.JButton;
+import javax.swing.JTextArea;
+
+/* Entrées/sorties */
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+/* Date */
+import java.text.DateFormat;
+import java.util.Date;
+
 /** Classe implémentant le bouton d'envoi de message. */
 class BoutonEnvoyer extends JButton implements MouseListener {
 
-	private String nom;
 	JTextArea champDiscussion, champMessage;
 	private Client client;
+	private boolean cliquable = false;
 	
-	/** Constructeur d'un bouton d'envoi de message */
+	/** Constructeur d'un bouton d'envoi de message
+	  * @param discussion le champ discussion du tchat
+	  * @param message le champ message du tchat
+	  */
 	public BoutonEnvoyer(JTextArea discussion, JTextArea message){
 		super("Envoyer");
-		nom = "Envoyer";
 		champDiscussion = discussion;
 		champMessage = message;
 		/*Grâce à cette instruction, notre objet va s'écouter. Dès qu'un événement de la souris sera intercepté, il en sera averti */
@@ -32,37 +39,27 @@ class BoutonEnvoyer extends JButton implements MouseListener {
 		client = c;
 	}
 	
-	//Méthode appelée lors du clic de souris
+	/** Setter sur le booléen cliquable.
+	  * Permet de déterminer si le bouton est cliquable ou pas.
+	  * Si le bouton n'est pas cliquable, il est grisé.
+	  */
+	public void setCliquable(boolean b) {
+		cliquable = b;
+	}
+	
+	/** Méthode appelée lors du clic de souris.
+	  * @param event l'événement attendu
+	  */
 	public void mouseClicked(MouseEvent event) {
 	
-		/* Envoi du message */
+		/* Si le bouton n'est pas cliquable, cliquer dessus n'enclenche aucune action */
+		if (!cliquable)
+			return;
+	
+		/* Envoi du message au format suivant : hh:mm:ss pseudo : message */
 		if (client.estConnecte()) 
 			client.envoyerMessage(DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date()) + " " + client.getNom() + " : " + champMessage.getText() + "\n");
-			
-		/* On attend 100 ms avant d'actualiser le temps que le serveur mette à jour le fichier des messages */
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		
-		/* On actualise */
-		String str = "";
-		try {
-			//Création de l'objet
-			FileReader fr = new FileReader("HistoriqueMessages.txt");
-			int i = 0;
-			//Lecture des données
-			while((i = fr.read()) != -1)
-				str += (char)i;
-			//On ferme le flux
-			fr.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		champDiscussion.setText(str);
 		champMessage.setText("");
 	}
 	//Méthode appelée lors du survol de la souris

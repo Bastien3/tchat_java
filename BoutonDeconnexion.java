@@ -1,24 +1,26 @@
-import java.util.List;
+/* Collections */
 import java.util.LinkedList;
+import java.util.List;
+
+/* Interface graphique */
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.Color;
-import java.io.FileNotFoundException;
+
+/* Entrées/sorties */
 import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.io.FileReader;
 
-/** Classe implémentant le bouton de connexion au tchat */
+/** Classe implémentant le bouton de déconnexion au tchat */
 class BoutonDeconnexion extends JButton implements MouseListener {
 
-	private String nomBouton;
 	private JTextField champNom;
 	private JTextField champIP;
 	private JTextField champPort;
@@ -26,19 +28,25 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 	private JTextArea champDiscussion;
 	private List<Client> listeClients;
 	private Client client;
-	private JButton envoyer;
+	private BoutonEnvoyer envoyer;
 	private Fenetre fenetre;
 	
-	/** Constructeur d'un bouton de connexion */
-	public BoutonDeconnexion(JTextField nom, JTextField ip, JTextField port, JTextArea connectes, JTextArea discussion, JButton b, Fenetre f){
+	/** Constructeur d'un bouton de déconnexion 
+	  * @param nom le champ nom du tchat
+	  * @param ip le champ ip du tchat
+	  * @param port le champ port du tchat
+	  * @param connectes le champ connectes du tchat
+	  * @param discussion le champ discussion du tchat
+	  * @param b1le bouton envoyer du tchat
+	  * @param f la fenêtre du tchat
+	  */
+	public BoutonDeconnexion(JTextField nom, JTextField ip, JTextField port, JTextArea connectes, JTextArea discussion, BoutonEnvoyer b, Fenetre f){
 		super("Déconnexion");
-		nomBouton = "Déconnexion";
 		champNom = nom;
 		champIP = ip;
 		champPort = port;
 		champConnectes = connectes;
 		champDiscussion = discussion;
-		listeClients = new LinkedList<Client>();
 		envoyer = b;
 		fenetre = f;
 		/* Grâce à cette instruction, notre objet va s'écouter. Dès qu'un événement de la souris sera intercepté, il en sera averti */
@@ -52,7 +60,10 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 		client = c;
 	}
 
-	// Méthode appelée lors du clic de souris
+	/** Méthode appelée lors du clic de souris.
+	  * Cette méthode charge la liste des clients à partir du fichier ListeClients.txt, déconnecte le client au serveur, le retire de la liste et sauvegarde la liste.
+	  * @param event l'événement attendu
+	  */
 	public void mouseClicked(MouseEvent event) {
 	
 		/* Chargement (désérialisation) de la liste des clients */
@@ -63,10 +74,9 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 			listeClients = new LinkedList<Client>(); // La liste est clients est réinitialisée pour pouvoir être chargée à partir du fichier
 			while ((c = (Client)(fichierClientsInput.readObject())) != null) // Ajout de chaque client du fichier à la liste des clients
 				listeClients.add(c);
-			System.out.println(listeClients);
 		
-		} catch (EOFException e) { // Cette exception est levée lorsque la fin du fichier est atteinte
-			System.out.println("Liste des clients chargée.");
+		} catch (EOFException e) { 
+			// La fn du fichier est atteinte, plus rien à faire
 		} catch (ClassNotFoundException e) { // Cette exception est levée si l'objet désérialisé n'a pas de classe connue
 			e.printStackTrace();
 		} catch (FileNotFoundException e) { // Cette exception est levée si l'objet ObjectInputStream ne trouve aucun fichier
@@ -84,28 +94,22 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 		}
 		
 		/* Suppression d'un client à une liste de clients */
-		try {
-			if (client.estConnecte()) { // Si le client est bien connecté
-				for (Client c : listeClients) 
-					if (c.getNom().equals(champNom.getText()))
-						listeClients.remove(c);
-				client.deconnecter();	
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (client.estConnecte()) { // Si le client est bien connecté
+			for (Client c : listeClients) // On retire de la liste le client ayant le même nom
+				if (c.getNom().equals(champNom.getText()))
+					listeClients.remove(c);
+			client.deconnecter();	
+			fenetre.vireLeClient();
 		}
+	
 		
 		/* Sauvegarde (sérialisation) de tous les clients dans le fichier client */
 		ObjectOutputStream fichierClientsOutput = null;
 			
 		try {
 			fichierClientsOutput = new ObjectOutputStream(new FileOutputStream("ListeClients.txt")); // Ouverture du fichier de clients en mode écriture
-			champConnectes.setText("");
-			for (Client c : listeClients) {// Écriture dans le fichier de tous les clients
-				champConnectes.setText(champConnectes.getText() + c.getNom() + "\n");
-				fichierClientsOutput.writeObject(c);
-			}
-			
+			for (Client c : listeClients) // Écriture dans le fichier de tous les clients
+				fichierClientsOutput.writeObject(c);		
 		} catch (FileNotFoundException e) { // Cette exception est levée si l'objet FileInputStream ne trouve aucun fichier
 			e.printStackTrace();
 		} catch (IOException e) { // Celle-ci se produit lors d'une erreur d'écriture ou de lecture
@@ -120,27 +124,8 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 			}
 		}
 		
-		/* Actualisation du champ discussion */
-		String str = "";
-		try {
-			//Création de l'objet
-			FileReader fr = new FileReader("HistoriqueMessages.txt");
-			int i = 0;
-			//Lecture des données
-			while((i = fr.read()) != -1)
-				str += (char)i;
-			//On ferme le flux
-			fr.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		champDiscussion.setText(str);
-		
 		/* Le bouton de déconnexion devient un bouton de connexion */
 		fenetre.changerConnexion();
-		
 	}
 	// Méthode appelée lors du survol de la souris
 	public void mouseEntered(MouseEvent event) { }
