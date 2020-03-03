@@ -47,8 +47,9 @@ public class Fenetre extends JFrame {
 	public Fenetre() {
 		
 		this.setTitle("Tchat");  // Définit un titre pour notre fenêtre    
-		this.setSize(largeur / 2, hauteur); // Définit sa taille : 1/2 de la largeur de l'écran et la longueur de sa hauteur   
+		this.setSize(largeur / 2 * 9 / 10, hauteur / 10 * 9); // Définit sa taille : 1/2 de la largeur de l'écran et la longueur de sa hauteur   
 		this.setLocationRelativeTo(null); // Nous demandons maintenant à notre objet de se positionner au centre
+		this.setResizable(false); // La fenêtre ne peut pas être redimensionnée
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Termine le processus lorsqu'on clique sur la croix rouge  
 		
 		
@@ -113,7 +114,7 @@ public class Fenetre extends JFrame {
 		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
 		// !!! C'est bien le JScrollPane qui définit la taille du champ et non le JTextArea !!!
-		sp1.setPreferredSize(new Dimension(largeur / 10, hauteur / 4 * 3));
+		sp1.setPreferredSize(new Dimension(largeur / 12, hauteur / 3 * 2));
 		
 		panneauConnectes.setLayout(new BoxLayout(panneauConnectes, BoxLayout.PAGE_AXIS));
 	
@@ -144,8 +145,8 @@ public class Fenetre extends JFrame {
 		champMessage.setBackground(gris); // Le champ message est grisé tant que le client ne s'est pas connecté
 		
 		// Fixation d'une limite pour les tailles avec des barres de défilement
-		sp2.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 2));
-		sp3.setPreferredSize(new Dimension(largeur / 27 * 10, hauteur / 6));
+		sp2.setPreferredSize(new Dimension(largeur / 20 * 7, hauteur / 2));
+		sp3.setPreferredSize(new Dimension(largeur / 20 * 7, hauteur / 6));
 		
 		panneauDiscussion.setLayout(new BoxLayout(panneauDiscussion, BoxLayout.PAGE_AXIS));
 		

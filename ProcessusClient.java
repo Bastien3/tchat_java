@@ -86,7 +86,7 @@ public class ProcessusClient implements Runnable {
 
 		String reponse = "";
 		int stream;
-		byte[] b = new byte[128];
+		byte[] b = new byte[512];
 		stream = reader.read(b);
 		reponse = new String(b, 0, stream);
 		return reponse;
