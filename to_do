@@ -1,7 +1,0 @@
-evaluation
-04/03 : projet fonctionnel (avoir fini complètement le tp avant cette séance)
-08/03 : 
-- code
-- readme contenant la liste des fonctionnalités et les commandes
-
-commande : javac --release 8 *.java
