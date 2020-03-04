@@ -24,7 +24,7 @@ public class Serveur {
 	  */
 	public Serveur() {
 
-		for (port = 1 ; port <= 65535 ; port++)
+		for (port = 1024 ; port <= 65535 ; port++)
 			try {
 				serveur = new ServerSocket(port, 2, InetAddress.getByName(hote)); // Création du socket représentant le serveur
 				System.out.println("Port libre trouvé pour le serveur : " + port);

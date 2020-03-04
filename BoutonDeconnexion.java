@@ -95,9 +95,11 @@ class BoutonDeconnexion extends JButton implements MouseListener {
 		
 		/* Suppression d'un client à une liste de clients */
 		if (client.estConnecte()) { // Si le client est bien connecté
-			for (Client c : listeClients) // On retire de la liste le client ayant le même nom
-				if (c.getNom().equals(champNom.getText()))
-					listeClients.remove(c);
+			List nouvelleListeClients = new LinkedList();
+			for (Client c : listeClients) // On ajoute tous les clients à garder, c'est à dire tous les clients dont le nom est différent du client à supprimer
+				if (!(c.getNom().equals(champNom.getText())))
+					nouvelleListeClients.add(c);
+			listeClients = nouvelleListeClients;
 			client.deconnecter();	
 			fenetre.vireLeClient();
 		}
